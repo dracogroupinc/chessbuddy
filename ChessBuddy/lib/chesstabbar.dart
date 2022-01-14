@@ -612,7 +612,7 @@ class TipsPage extends StatelessWidget {
 						"1. Start a new game.\n\n"
 						"2. Set both players as 'Human'.\n\n"
 						"3. Make a few moves, e.g. Queen's Gambit opening.\n\n"
-						"4. Set one or both players as 'Stockfish'.
+						"4. Set one or both players as 'Stockfish'.\n\n"
 						"5. Enjoy Stockfish's following moves.\n\n",
                         style: TextStyle(color: Colors.black87,
                           fontSize: 14,)),
