@@ -580,7 +580,7 @@ class TipsPage extends StatelessWidget {
         children: <Widget>[
           Container(
             color: Color(int.parse("#cbccfe".substring(1, 7), radix: 16) + 0xFF000000),
-            height: 800.0,
+            height: 1000,
             alignment: Alignment.center,
             child: Stack(
                 fit: StackFit.loose,
@@ -589,7 +589,7 @@ class TipsPage extends StatelessWidget {
                   new Positioned(
                     top: 10,
                     left: 10,
-                    height:800,
+                    height:1000,
                     width: buttonWidthC,
                     child: const Text(
                         "(A) Run against other apps\n\n"
