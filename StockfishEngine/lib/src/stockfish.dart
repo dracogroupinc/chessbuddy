@@ -53,6 +53,7 @@ class Stockfish {
   factory Stockfish() {
     if (_instance != null) {
       throw new StateError('Multiple instances are not supported, yet.');
+	  //return _instance!;
     }
 
     _instance = Stockfish._();
@@ -79,7 +80,8 @@ class Stockfish {
 
   /// Stops the C++ engine.
   void dispose() {
-    stdin = 'quit';
+    //stdin = 'quit';
+	_cleanUp(0);
   }
 
   void _cleanUp(int exitCode) {

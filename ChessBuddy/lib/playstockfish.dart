@@ -11,14 +11,19 @@ import 'dart:async';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
+
 class PlayStockfish extends StatefulWidget {
   @override
   _PlayStockfishState createState() => _PlayStockfishState();
 }
 
-class _PlayStockfishState extends State<PlayStockfish> {
+class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingObserver{
+  var _androidAppRetain = MethodChannel("android_app_retain");
+
   late Stockfish stockfish;
   late StreamSubscription<String> streamSubscription;
+
+  bool bQuited = false;
 
   int whitePawnVal = 1, whiteRookVal = 2, whiteKnightVal = 3,
       whiteBishopVal = 4, whiteQueenVal = 5, whiteKingVal = 6;
@@ -323,6 +328,49 @@ class _PlayStockfishState extends State<PlayStockfish> {
 
   late Container containerButtAITime;
 
+
+  void QuitStockfish() {
+    streamSubscription.cancel();
+
+    stockfish.stdin = 'quit';
+    sleep(const Duration(milliseconds:300));
+    //bQuited = true;
+    setState(() {
+      bQuited = true;
+
+    });
+  }
+
+  void ReloadStockfish() {
+    if (bQuited){
+      bQuited = false;
+      final stockfishNew = Stockfish();
+      setState(() {
+        bQuited = false;
+        //final stockfishNew = Stockfish();
+
+        //stockfish = Stockfish();
+        stockfish = stockfishNew;
+
+        streamSubscription = stockfish.stdout.listen((value) {
+          if (value.startsWith('bestmove')) {
+            final split = value.split(' ');
+            //final Map<int, String> values = {
+            //  for (int i = 0; i < split.length; i++)
+            //    i: split[i]
+            //};
+            if (split.length >= 2) {
+              //textfielsController.text = split[1];
+              AINextMove(split[1]);
+            }
+          }
+        });
+
+      });
+
+      sleep(const Duration(milliseconds:500));
+    }
+  }
   void UpdateBusyIndicators() {
     DisplayHint(false, 0, 0, 0, 0);
 
@@ -535,6 +583,10 @@ class _PlayStockfishState extends State<PlayStockfish> {
     if (!bStockfishBusy){
       PlayNextMove();
     }
+
+    //if (bWhitePlayerIsHuman && bBlackPlayerIsHuman){
+    //  QuitStockfish();
+    //}
   }
 
   void playerBlackIDClick(){
@@ -545,6 +597,10 @@ class _PlayStockfishState extends State<PlayStockfish> {
     if (!bStockfishBusy){
       PlayNextMove();
     }
+
+    //if (bWhitePlayerIsHuman && bBlackPlayerIsHuman){
+    //  QuitStockfish();
+    //}
   }
 
   void UpdatePlayerBlackID(){
@@ -5511,6 +5567,8 @@ class _PlayStockfishState extends State<PlayStockfish> {
 
     bStockfishBusy = true;
 
+    //ReloadStockfish();
+
     if (numMoves == 0){
       stockfish.stdin = stockfishCommands[stockfishThinkingTimeIndex];
     }
@@ -5603,11 +5661,43 @@ class _PlayStockfishState extends State<PlayStockfish> {
 
   }
 
+  /*
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+
+    }
+  }
+
+
+  @override
+  void deactivate() {
+    if (!bQuited){
+      QuitStockfish();
+    }
+
+    super.deactivate();
+  }
+
+   */
+
+  @override
+  void dispose() {
+    stockfish.stdin = 'quit';
+    //stockfish.dispose();
+
+    super.dispose();
+  }
+
+
   @override
   void initState() {
     super.initState();
 
-    stockfish = Stockfish();
+    //WidgetsBinding.instance.addObserver(this);
+    //WidgetsBinding.instance!.addObserver(this);
+
+    stockfish = new Stockfish();
 
     streamSubscription = stockfish.stdout.listen((value) {
       if (value.startsWith('bestmove')) {
@@ -5622,6 +5712,15 @@ class _PlayStockfishState extends State<PlayStockfish> {
         }
       }
     });
+
+    /*
+    try {
+
+    } catch (error) {
+
+    }
+
+     */
 
     SetIndexMap();
 
@@ -7035,32 +7134,100 @@ class _PlayStockfishState extends State<PlayStockfish> {
   }
 
   onWillPop(context) async {
+    //Navigator.of(context).pushNamedAndRemoveUntil('/Home', (Route<dynamic> route) => false);
+    //Navigator.pushReplacementNamed(context, 'Home');
+    //return Future.value(true);
+    //_androidAppRetain.invokeMethod("sendToBackground");
+    //return Future.value(false);
+    //return false;
+
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Expanded(
-          child: AlertDialog(
-            title: Text('Exit'),
-            content: Text('Are you sure to exit the App?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  SystemNavigator.pop();
-                  exit(0);
-                },
-                child: Text('YES', style: TextStyle(color: Colors.green),),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: Text('NO', style: TextStyle(color: Colors.green),),
-              ),
-            ],
-          ),
+        return SimpleDialog(
+          title: const Text('Exit the App?'),
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                SimpleDialogOption(
+                  onPressed: () {
+                    //Navigator.of(context)
+                    //    .pushNamedAndRemoveUntil('/Home', (Route<dynamic> route) => false);
+                    //Navigator.of(context).pop(true);
+
+                    /*
+                    stockfish.stdin = 'quit';
+                    sleep(const Duration(milliseconds:700));
+                    stockfish.dispose();
+                    sleep(const Duration(milliseconds:200));
+                    bQuited = true;
+
+                    SystemNavigator.pop();
+
+                    exit(0);
+
+                     */
+                    Navigator.of(context).pop(false);
+                    newGameClick();
+                    _androidAppRetain.invokeMethod("sendToBackground");
+                  },
+                  child: const Text('Yes',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SimpleDialogOption(
+                  onPressed: () {
+                    //Navigator.pop(context, false);
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ],
         );
       },
     );
+
+
+
+    /*
+    SimpleDialog(
+      title: const Text('Are you sure to exit the App?'),
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                //Navigator.pop(context, true);
+                stockfish.stdin = 'quit';
+                sleep(const Duration(milliseconds:500));
+                bQuited = true;
+
+                SystemNavigator.pop();
+
+                exit(0);
+                },
+              child: const Text('Yes',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                //Navigator.pop(context, false);
+                Navigator.of(context).pop(false);
+                },
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ],
+    );
+
+     */
 
     return false;
   }
@@ -7418,7 +7585,9 @@ class _PlayStockfishState extends State<PlayStockfish> {
 
     return WillPopScope(
         onWillPop: () => onWillPop(context),
+
     child:  Scaffold(
+    //return Scaffold(
       backgroundColor: hexToColor("#cbccfe"),
       body: Container(
           child: Column(
@@ -8588,6 +8757,7 @@ class _PlayStockfishState extends State<PlayStockfish> {
       ),
     )
     );
+
   }
 }
 

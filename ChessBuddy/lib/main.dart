@@ -11,6 +11,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool bQuited = false;
+
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -25,5 +27,36 @@ class _MyAppState extends State<MyApp> {
 
   }
 
+  @override
+  void initState() {
+    super.initState();
+    //WidgetsBinding.instance.addObserver(this);
+    //WidgetsBinding.instance!.addObserver(this);
+  }
+
+  /*
+  //WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
+
+
+
+  @override
+  void dispose() {
+    if (!bQuited){
+      //stockfish.stdin = 'quit';
+      //sleep(const Duration(milliseconds:500));
+    }
+
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+
+    }
+  }
+
+   */
 
 }
