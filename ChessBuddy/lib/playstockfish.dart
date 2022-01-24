@@ -347,9 +347,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
       final stockfishNew = Stockfish();
       setState(() {
         bQuited = false;
-        //final stockfishNew = Stockfish();
 
-        //stockfish = Stockfish();
         stockfish = stockfishNew;
 
         streamSubscription = stockfish.stdout.listen((value) {
@@ -583,10 +581,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     if (!bStockfishBusy){
       PlayNextMove();
     }
-
-    //if (bWhitePlayerIsHuman && bBlackPlayerIsHuman){
-    //  QuitStockfish();
-    //}
   }
 
   void playerBlackIDClick(){
@@ -597,10 +591,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     if (!bStockfishBusy){
       PlayNextMove();
     }
-
-    //if (bWhitePlayerIsHuman && bBlackPlayerIsHuman){
-    //  QuitStockfish();
-    //}
   }
 
   void UpdatePlayerBlackID(){
@@ -897,31 +887,35 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   }
 
   void newGameClick(){
-    bStartingNewGame = true;
+    setState(() {
+      if (bStockfishBusy) {
+        bStartingNewGame = true;
+      }
 
-    numMoves = 0;
+      numMoves = 0;
 
-    bWhiteOnBottom = true;
-    bWhitePlayerIsHuman = true;
-    bBlackPlayerIsHuman = false;
+      bWhiteOnBottom = true;
+      bWhitePlayerIsHuman = true;
+      bBlackPlayerIsHuman = false;
 
-    bIsWhiteMove = true;
+      bIsWhiteMove = true;
 
-    bIsFirstSelect = true;
-    numWhiteQueenPromotion = 0;
-    numBlackQueenPromotion = 0;
+      bIsFirstSelect = true;
+      numWhiteQueenPromotion = 0;
+      numBlackQueenPromotion = 0;
 
-    bRedrawArrow = false;
-    bRedrawHint = false;
+      bRedrawArrow = false;
+      bRedrawHint = false;
 
-    bStepBackWaiting = false;
+      bStepBackWaiting = false;
 
-    bRook0Moved = false;
-    bRook7Moved = false;
-    bRook56Moved = false;
-    bRook63Moved = false;
-    bWhiteKingMoved = false;
-    bBlackKingMoved = false;
+      bRook0Moved = false;
+      bRook7Moved = false;
+      bRook56Moved = false;
+      bRook63Moved = false;
+      bWhiteKingMoved = false;
+      bBlackKingMoved = false;
+    });
 
     InitPieces();
 
@@ -5480,14 +5474,18 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   }
 
   void AINextMove(String move) {
+    setState(() {
+      bStockfishBusy = false;
+    });
+
     if (bStartingNewGame){
       bStartingNewGame = false;
 
       bIsShowingHint = false;
-      bStockfishBusy = false;
 
       return;
     }
+
 
     if (bIsShowingHint){
       if (move.length == 4 || move.length == 5){
@@ -5517,7 +5515,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
       }
 
       bIsShowingHint = false;
-      bStockfishBusy = false;
 
       return;
     }
@@ -5533,8 +5530,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
       MoveOnePiece();
 
       RecordOneMove(move);
-
-      bStockfishBusy = false;
 
       if (bStepBackWaiting){
         bStepBackWaiting = false;
@@ -5567,20 +5562,20 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
 
     bStockfishBusy = true;
 
-    //ReloadStockfish();
+    String command = "position startpos";
 
     if (numMoves == 0){
+      stockfish.stdin = command;
       stockfish.stdin = stockfishCommands[stockfishThinkingTimeIndex];
     }
     else{
-      String command = "position startpos moves";
+      command = "position startpos moves";
 
       for (int i=0; i<numMoves; i++){
         command += ' ' + movesList[i];
       }
 
       stockfish.stdin = command;
-
       stockfish.stdin = stockfishCommands[stockfishThinkingTimeIndex];
     }
   }
@@ -7134,14 +7129,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   }
 
   onWillPop(context) async {
-    //Navigator.of(context).pushNamedAndRemoveUntil('/Home', (Route<dynamic> route) => false);
-    //Navigator.pushReplacementNamed(context, 'Home');
-    //return Future.value(true);
-    //_androidAppRetain.invokeMethod("sendToBackground");
-    //return Future.value(false);
-    //return false;
-
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -7153,10 +7140,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
               children: <Widget>[
                 SimpleDialogOption(
                   onPressed: () {
-                    //Navigator.of(context)
-                    //    .pushNamedAndRemoveUntil('/Home', (Route<dynamic> route) => false);
-                    //Navigator.of(context).pop(true);
-
                     /*
                     stockfish.stdin = 'quit';
                     sleep(const Duration(milliseconds:700));
@@ -7190,44 +7173,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
         );
       },
     );
-
-
-
-    /*
-    SimpleDialog(
-      title: const Text('Are you sure to exit the App?'),
-      children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            SimpleDialogOption(
-              onPressed: () {
-                //Navigator.pop(context, true);
-                stockfish.stdin = 'quit';
-                sleep(const Duration(milliseconds:500));
-                bQuited = true;
-
-                SystemNavigator.pop();
-
-                exit(0);
-                },
-              child: const Text('Yes',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            SimpleDialogOption(
-              onPressed: () {
-                //Navigator.pop(context, false);
-                Navigator.of(context).pop(false);
-                },
-              child: const Text('Cancel'),
-            ),
-          ],
-        ),
-      ],
-    );
-
-     */
 
     return false;
   }
