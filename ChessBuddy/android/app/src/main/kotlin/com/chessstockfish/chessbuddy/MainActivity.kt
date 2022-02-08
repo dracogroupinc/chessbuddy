@@ -20,7 +20,9 @@ class MainActivity: FlutterActivity() {
                     moveTaskToBack(true)
                 }
             }
-        }
+        };
+
+        Runtime.getRuntime().gc();
     }
 
 }
