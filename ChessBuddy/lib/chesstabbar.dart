@@ -1,37 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'playstockfish.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChessTabBar extends StatefulWidget {
-  const ChessTabBar({Key? key}) : super(key: key);
+  late WithTabBarState child;
+
+  ChessTabBar({Key? key}) : super(key: key);
+
+  void disposeStockfish() {
+    child.disposeStockfish();
+  }
 
   @override
-  _WithTabBarState createState() => _WithTabBarState();
+  WithTabBarState createState()  {
+    child = WithTabBarState();
+    return child;
+  }
 }
 
-class _WithTabBarState extends State<ChessTabBar> {
+class WithTabBarState extends State<ChessTabBar> {
   int _selectedIndex = 0;
+  late PlayStockfish child;
+  late List<Widget> _pages;
+  int _thinkingtimeindex = 0;
 
-  static List<Widget> _pages = <Widget>[
-    PlayStockfish(),
-    CallsPage(),
+  int getThinkingTimeIndex() {
+    return _thinkingtimeindex;
+  }
 
-    Center(
-      child: Icon(
-        Icons.camera,
-        size: 150,
-      ),
-    ),
+  void setThinkingTimeIndex(int index) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _thinkingtimeindex = index;
+    prefs.setInt('thinkingtimeindex', _thinkingtimeindex);
+  }
 
-    Padding(
-      padding: EdgeInsets.all(16.0),
-      child: TextField(
-        decoration: InputDecoration(
-            labelText: 'Find contact',
-            labelStyle: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-    ),
-  ];
+  void loadThinkingTimeIndex() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _thinkingtimeindex = (prefs.getInt('thinkingtimeindex') ?? 0);
+
+    child.setThinkingTimeIndex(_thinkingtimeindex);
+  }
+
+  void disposeStockfish() {
+    child.disposeStockfish();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -40,7 +53,39 @@ class _WithTabBarState extends State<ChessTabBar> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    //loadThinkingTimeIndex();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+    child = PlayStockfish(parent: this);
+
+    loadThinkingTimeIndex();
+
+    _pages = <Widget>[
+      child,
+      CallsPage(),
+
+      Center(
+        child: Icon(
+          Icons.camera,
+          size: 150,
+        ),
+      ),
+
+      Padding(
+        padding: EdgeInsets.all(16.0),
+        child: TextField(
+          decoration: InputDecoration(
+              labelText: 'Find contact',
+              labelStyle: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ),
+    ];
+
     return Scaffold(
       body: IndexedStack(
         children: _pages,
@@ -232,7 +277,7 @@ class UIPage extends StatelessWidget {
         children: <Widget>[
           Container(
             color: Color(int.parse("#cbccfe".substring(1, 7), radix: 16) + 0xFF000000),
-            height: 800.0,
+            height: 900.0,
             alignment: Alignment.center,
             child: Stack(
               fit: StackFit.loose,
@@ -553,6 +598,23 @@ class UIPage extends StatelessWidget {
                       style: TextStyle(color: Colors.black87,
                         fontSize: 14,)),
                 ),
+
+                /*
+                new Positioned(
+                  top: 740,
+                  left: 20,
+                  height:50,
+                  width: buttonWidthC,
+                  child: const Text(
+                      "Known issue:\n\n"
+                      "When this app is 'force' closed, sometimes it will not restart properly.\n\n"
+                      "The app will resume running after device is turned off.\n\n",
+
+                      style: TextStyle(color: Colors.black87,
+                        fontSize: 14,)),
+                ),
+
+                 */
               ]),
           ),
 
@@ -580,7 +642,7 @@ class TipsPage extends StatelessWidget {
         children: <Widget>[
           Container(
             color: Color(int.parse("#cbccfe".substring(1, 7), radix: 16) + 0xFF000000),
-            height: 1000,
+            height: 1700,
             alignment: Alignment.center,
             child: Stack(
                 fit: StackFit.loose,
@@ -589,10 +651,13 @@ class TipsPage extends StatelessWidget {
                   new Positioned(
                     top: 10,
                     left: 10,
-                    height:1000,
+                    height:1700,
                     width: buttonWidthC,
                     child: const Text(
-                        "(A) Run against other apps\n\n"
+                        "(A) Known issue\n\n"
+                        "When this app is 'force' closed, sometimes it will not restart properly.\n\n"
+                        "The app will resume working after device is turned-off / turned-on.\n\n\n"
+                        "(B) Run against other apps\n\n"
                         "1. Run this app on one device and run other app on second device(Phone or PC).\n\n"
                         "2. Let's say you play white on other app, then on this app you set White as 'Stockfish' and Black as 'Human'.\n\n"
                         "3. If you play black on other app, then on this app you set Black as 'Stockfish' and White as 'Human'.\n\n"
@@ -602,18 +667,20 @@ class TipsPage extends StatelessWidget {
                         "7. Keep transferring moves between two apps until you beat your opponent on other app:)\n\n"
                         "8. In our tests, with 5 seconds working time, this app beats apps such as 'Droidfish', 'Play Magnus' and 'Genius'.\n\n"
                         "9. If you play your friend online and try to surprise him or her with Stockfish, set working time no more than 3 seconds to not slow down the game.\n\n\n"
-                        "(B) Watch online games with Stockfish\n\n"
+                        "(C) Watch online games with Stockfish\n\n"
                         "1. Start a new game on this app.\n\n"
                         "2. Set both white and black players as 'Human'.\n\n"
                         "3. Set working time to '5 seconds'.\n\n"
                         "4. Repeat every move of online game on this app.\n\n"
                         "5. At each step, use 'Show Hint' to see Stockfish's suggestion and compare online game player's move with Stockfish's move.\n\n\n"
-						"(C) Start a game with a certain opening\n\n"
+						"(D) Start a game with a certain opening\n\n"
 						"1. Start a new game.\n\n"
 						"2. Set both players as 'Human'.\n\n"
 						"3. Make a few moves, e.g. Queen's Gambit opening.\n\n"
 						"4. Set one or both players as 'Stockfish'.\n\n"
-						"5. Enjoy Stockfish's following moves.\n\n",
+						"5. Enjoy Stockfish's following moves.\n\n\n"
+            "(E) This app is an open source project. The source files are located at:\n\n"
+            "https://github.com/dracogroupinc/chessbuddy/tree/master\n\n",
                         style: TextStyle(color: Colors.black87,
                           fontSize: 14,)),
                   ),

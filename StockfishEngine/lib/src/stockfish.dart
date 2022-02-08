@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:isolate';
 
@@ -7,9 +8,12 @@ import 'package:flutter/foundation.dart';
 import 'ffi.dart';
 import 'stockfish_state.dart';
 
+//late Isolate isolate0;
+//late Isolate isolate1;
+  
 /// A wrapper for C++ engine.
 class Stockfish {
-  final Completer<Stockfish>? completer;
+  //final Completer<Stockfish>? completer;
 
   final _state = _StockfishState();
   final _stdoutController = StreamController<String>.broadcast();
@@ -18,7 +22,11 @@ class Stockfish {
 
   late StreamSubscription _mainSubscription;
   late StreamSubscription _stdoutSubscription;
+  
+  //late Isolate _isolate0;
+  //late Isolate _isolate1;
 
+/*
   Stockfish._({this.completer}) {
     _mainSubscription =
         _mainPort.listen((message) => _cleanUp(message is int ? message : 1));
@@ -29,7 +37,9 @@ class Stockfish {
         debugPrint('[stockfish] The stdout isolate sent $message');
       }
     });
-    compute(_spawnIsolates, [_mainPort.sendPort, _stdoutPort.sendPort]).then(
+	
+	compute(_spawnIsolates, [_mainPort.sendPort, _stdoutPort.sendPort]).then(
+    //compute(_spawnIsolates2, map).then(
       (success) {
         final state = success ? StockfishState.ready : StockfishState.error;
         _state._setValue(state);
@@ -42,8 +52,11 @@ class Stockfish {
         _cleanUp(1);
       },
     );
+	
   }
+  */
 
+  /*
   static Stockfish? _instance;
 
   /// Creates a C++ engine.
@@ -59,7 +72,43 @@ class Stockfish {
     _instance = Stockfish._();
     return _instance!;
   }
+  */
+  //Stockfish? _instance;
 
+  /// Creates a C++ engine.
+  ///
+  /// This may throws a [StateError] if an active instance is being used.
+  /// Owner must [dispose] it before a new instance can be created.
+  Stockfish() {   
+    //_instance = Stockfish._();
+    //return _instance!;
+	_mainSubscription =
+        _mainPort.listen((message) => _cleanUp(message is int ? message : 1));
+    _stdoutSubscription = _stdoutPort.listen((message) {
+      if (message is String) {
+        _stdoutController.sink.add(message);
+      } else {
+        debugPrint('[stockfish] The stdout isolate sent $message');
+      }
+    });
+	
+	
+	compute(_spawnIsolates, [_mainPort.sendPort, _stdoutPort.sendPort]).then(
+      (success) {
+        final state = success ? StockfishState.ready : StockfishState.error;
+        _state._setValue(state);
+        //if (state == StockfishState.ready) {
+        //  completer?.complete(this);
+        //}
+      },
+      onError: (error) {
+        debugPrint('[stockfish] The init isolate encountered an error $error');
+        _cleanUp(1);
+      },
+    );
+	
+  }
+  
   /// The current state of the underlying C++ engine.
   ValueListenable<StockfishState> get state => _state;
 
@@ -80,8 +129,20 @@ class Stockfish {
 
   /// Stops the C++ engine.
   void dispose() {
-    //stdin = 'quit';
+    stdin = 'quit';
+	
+	//sleep(const Duration(milliseconds:300));
 	_cleanUp(0);
+	
+	/*
+	if (isolate0 != null) {
+	  isolate0.kill(priority: Isolate.immediate);
+	}
+	
+	if (isolate1 != null) {
+	  isolate1.kill(priority: Isolate.immediate);
+	}
+	*/
   }
 
   void _cleanUp(int exitCode) {
@@ -93,7 +154,7 @@ class Stockfish {
     _state._setValue(
         exitCode == 0 ? StockfishState.disposed : StockfishState.error);
 
-    _instance = null;
+    //_instance = null;
   }
 }
 
@@ -101,6 +162,7 @@ class Stockfish {
 ///
 /// This method is different from the factory method [new Stockfish] that
 /// it will wait for the engine to be ready before returning the instance.
+/*
 Future<Stockfish> stockfishAsync() {
   if (Stockfish._instance != null) {
     return Future.error(StateError('Only one instance can be used at a time'));
@@ -110,7 +172,7 @@ Future<Stockfish> stockfishAsync() {
   Stockfish._instance = Stockfish._(completer: completer);
   return completer.future;
 }
-
+*/
 class _StockfishState extends ChangeNotifier
     implements ValueListenable<StockfishState> {
   StockfishState _value = StockfishState.starting;
@@ -175,3 +237,29 @@ Future<bool> _spawnIsolates(List<SendPort> mainAndStdout) async {
 
   return true;
 }
+
+/*
+Future<bool> _spawnIsolates2(Map map) async {
+  final initResult = nativeInit();
+  if (initResult != 0) {
+    debugPrint('[stockfish] initResult=$initResult');
+    return false;
+  }
+
+  try {
+    map['4'] = await Isolate.spawn(_isolateStdout, map['2']);
+  } catch (error) {
+    debugPrint('[stockfish] Failed to spawn stdout isolate: $error');
+    return false;
+  }
+
+  try {
+    map['3'] = await Isolate.spawn(_isolateMain, map['1']);
+  } catch (error) {
+    debugPrint('[stockfish] Failed to spawn main isolate: $error');
+    return false;
+  }
+
+  return true;
+}
+*/

@@ -11,19 +11,40 @@ import 'dart:async';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
+import 'chesstabbar.dart';
 
 class PlayStockfish extends StatefulWidget {
+  late WithTabBarState parent;
+
+  late _PlayStockfishState child;
+
+  PlayStockfish({required this.parent});
+
+  void disposeStockfish() {
+    child.disposeStockfish();
+  }
+
+  void setThinkingTimeIndex(int index) {
+    child.setThinkingTimeIndex(index);
+  }
+
   @override
-  _PlayStockfishState createState() => _PlayStockfishState();
+  _PlayStockfishState createState() {
+    child = _PlayStockfishState(parent: parent);
+
+    return child;
+  }
 }
 
 class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingObserver{
+  late WithTabBarState parent;
+
   var _androidAppRetain = MethodChannel("android_app_retain");
 
   late Stockfish stockfish;
   late StreamSubscription<String> streamSubscription;
 
-  bool bQuited = false;
+  bool bIsFirstLoad = true;
 
   int whitePawnVal = 1, whiteRookVal = 2, whiteKnightVal = 3,
       whiteBishopVal = 4, whiteQueenVal = 5, whiteKingVal = 6;
@@ -328,28 +349,81 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
 
   late Container containerButtAITime;
 
+  _PlayStockfishState({required this.parent});
 
-  void QuitStockfish() {
-    streamSubscription.cancel();
+  void disposeStockfish() {
+    try {
+      stockfish.dispose();
+    } catch (error) {
 
-    stockfish.stdin = 'quit';
-    sleep(const Duration(milliseconds:300));
-    //bQuited = true;
+    }
+  }
+
+  void setThinkingTimeIndex(int index) {
+    stockfishThinkingTimeIndex = index;
+
     setState(() {
-      bQuited = true;
-
+      stringButtAITime = stockfishThinkingTimeStrings[stockfishThinkingTimeIndex];
     });
   }
 
-  void ReloadStockfish() {
-    if (bQuited){
-      bQuited = false;
-      final stockfishNew = Stockfish();
-      setState(() {
-        bQuited = false;
+  Future<void> waitUntilReady() async {
+    int numSeconds = 3;
 
+    try {
+      while (numSeconds > 0 && stockfish.state.value != StockfishState.ready) {
+        await Future.delayed(Duration(seconds: 1));
+
+        numSeconds--;
+      }
+    } catch (error) {
+
+    }
+
+  }
+
+  Future<void> StockfishExit() async {
+    await Future.delayed(Duration(seconds: 1));
+    exit(0);
+  }
+
+  Future<void> LoadStockfish() async {
+    stockfish = Stockfish();
+
+    await waitUntilReady();
+
+    streamSubscription = stockfish.stdout.listen((value) {
+      if (value.startsWith('bestmove')) {
+        final split = value.split(' ');
+        //final Map<int, String> values = {
+        //  for (int i = 0; i < split.length; i++)
+        //    i: split[i]
+        //};
+        if (split.length >= 2) {
+          //textfielsController.text = split[1];
+          AINextMove(split[1]);
+        }
+      }
+    });
+
+  }
+
+  Future<void> ReloadStockfish() async {
+    /*
+    if (bIsFirstLoad){
+      bIsFirstLoad = false;
+
+      final stockfishNew = Stockfish();
+
+      setState(() {
         stockfish = stockfishNew;
 
+      });
+
+      await waitUntilReady();
+
+
+      setState(() {
         streamSubscription = stockfish.stdout.listen((value) {
           if (value.startsWith('bestmove')) {
             final split = value.split(' ');
@@ -364,11 +438,66 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
           }
         });
 
+
       });
 
-      sleep(const Duration(milliseconds:500));
+      return;
     }
+
+     */
+
+    if (stockfish.state.value == StockfishState.disposed){
+      /*
+      final stockfishNew = Stockfish();
+
+      setState(() {
+        stockfish = stockfishNew;
+
+      });
+      *
+       */
+      stockfish = Stockfish();
+
+      await waitUntilReady();
+
+      streamSubscription = stockfish.stdout.listen((value) {
+        if (value.startsWith('bestmove')) {
+          final split = value.split(' ');
+          //final Map<int, String> values = {
+          //  for (int i = 0; i < split.length; i++)
+          //    i: split[i]
+          //};
+          if (split.length >= 2) {
+            //textfielsController.text = split[1];
+            AINextMove(split[1]);
+          }
+        }
+      });
+/*
+      setState(() {
+        streamSubscription = stockfish.stdout.listen((value) {
+          if (value.startsWith('bestmove')) {
+            final split = value.split(' ');
+            //final Map<int, String> values = {
+            //  for (int i = 0; i < split.length; i++)
+            //    i: split[i]
+            //};
+            if (split.length >= 2) {
+              //textfielsController.text = split[1];
+              AINextMove(split[1]);
+            }
+          }
+        });
+
+
+      });
+
+ */
+
+    }
+
   }
+
   void UpdateBusyIndicators() {
     DisplayHint(false, 0, 0, 0, 0);
 
@@ -470,6 +599,8 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     setState(() {
       stringButtAITime = stockfishThinkingTimeStrings[stockfishThinkingTimeIndex];
     });
+
+    parent.setThinkingTimeIndex(stockfishThinkingTimeIndex);
   }
 
   void rotateBoardClick(){
@@ -5555,10 +5686,12 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     bIsWhiteMove = !bIsWhiteMove;
   }
 
-  void StartAINextMove() {
+  void StartAINextMove() async {
     if (numMoves > maxNumMoves){
       return;
     }
+
+    //await ReloadStockfish();
 
     bStockfishBusy = true;
 
@@ -5656,43 +5789,16 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
 
   }
 
-  /*
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-
-    }
-  }
-
-
-  @override
-  void deactivate() {
-    if (!bQuited){
-      QuitStockfish();
-    }
-
-    super.deactivate();
-  }
-
-   */
-
-  @override
-  void dispose() {
-    stockfish.stdin = 'quit';
-    //stockfish.dispose();
-
-    super.dispose();
-  }
 
 
   @override
   void initState() {
     super.initState();
 
-    //WidgetsBinding.instance.addObserver(this);
-    //WidgetsBinding.instance!.addObserver(this);
+    LoadStockfish();
 
-    stockfish = new Stockfish();
+    /*
+    stockfish = Stockfish();
 
     streamSubscription = stockfish.stdout.listen((value) {
       if (value.startsWith('bestmove')) {
@@ -5707,6 +5813,12 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
         }
       }
     });
+
+     */
+
+
+    //stockfishThinkingTimeIndex = parent.getThinkingTimeIndex();//thinkingtimeindex;
+    stringButtAITime = stockfishThinkingTimeStrings[stockfishThinkingTimeIndex];
 
     /*
     try {
@@ -7140,21 +7252,13 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
               children: <Widget>[
                 SimpleDialogOption(
                   onPressed: () {
-                    /*
-                    stockfish.stdin = 'quit';
-                    sleep(const Duration(milliseconds:700));
-                    stockfish.dispose();
-                    sleep(const Duration(milliseconds:200));
-                    bQuited = true;
 
-                    SystemNavigator.pop();
-
-                    exit(0);
-
-                     */
                     Navigator.of(context).pop(false);
                     newGameClick();
                     _androidAppRetain.invokeMethod("sendToBackground");
+
+                    //stockfish.dispose();
+                    //StockfishExit();
                   },
                   child: const Text('Yes',
                     style: TextStyle(fontWeight: FontWeight.bold),
