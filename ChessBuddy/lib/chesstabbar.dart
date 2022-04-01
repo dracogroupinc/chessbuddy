@@ -21,12 +21,29 @@ class ChessTabBar extends StatefulWidget {
 
 class WithTabBarState extends State<ChessTabBar> {
   int _selectedIndex = 0;
-  late PlayStockfish child;
+  int _languageIndex = 0;
+
+  late PlayStockfish playStockfish;
+  late SettingsPage settingsPage;
   late List<Widget> _pages;
-  int _thinkingtimeindex = 0;
+  int _thinkingtimeindex = 1;
 
   int getThinkingTimeIndex() {
     return _thinkingtimeindex;
+  }
+
+  int getSelectedIndex() {
+    return _selectedIndex;
+  }
+
+  int getLanguageIndex() {
+    return _languageIndex;
+  }
+
+  void setFirstTab(){
+    setState(() {
+      _selectedIndex = 0;
+    });
   }
 
   void setThinkingTimeIndex(int index) async {
@@ -35,15 +52,27 @@ class WithTabBarState extends State<ChessTabBar> {
     prefs.setInt('thinkingtimeindex', _thinkingtimeindex);
   }
 
+  void setLanguageIndex(int index) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _languageIndex = index;
+    prefs.setInt('languageIndex', _languageIndex);
+
+    // update UI and help-page
+    playStockfish.setLanguageIndex(_languageIndex);
+  }
+
   void loadThinkingTimeIndex() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _thinkingtimeindex = (prefs.getInt('thinkingtimeindex') ?? 0);
 
-    child.setThinkingTimeIndex(_thinkingtimeindex);
+    _thinkingtimeindex = (prefs.getInt('thinkingtimeindex') ?? 1);
+    playStockfish.setThinkingTimeIndex(_thinkingtimeindex);
+
+    _languageIndex = (prefs.getInt('languageIndex') ?? 0);
+    playStockfish.setLanguageIndex(_languageIndex);
   }
 
   void disposeStockfish() {
-    child.disposeStockfish();
+    playStockfish.disposeStockfish();
   }
 
   void _onItemTapped(int index) {
@@ -61,13 +90,15 @@ class WithTabBarState extends State<ChessTabBar> {
   @override
   Widget build(BuildContext context) {
 
-    child = PlayStockfish(parent: this);
+    playStockfish = PlayStockfish(parent: this);
+    settingsPage = SettingsPage(parent: this);
 
     loadThinkingTimeIndex();
 
     _pages = <Widget>[
-      child,
-      CallsPage(),
+      playStockfish,
+      settingsPage,
+      HelpPage(),
 
       Center(
         child: Icon(
@@ -102,6 +133,10 @@ class WithTabBarState extends State<ChessTabBar> {
             label: 'Play',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Setting',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.help),
             label: 'Help',
           ),
@@ -115,8 +150,8 @@ class WithTabBarState extends State<ChessTabBar> {
   }
 }
 
-class CallsPage extends StatelessWidget {
-  const CallsPage();
+class HelpPage extends StatelessWidget {
+  const HelpPage();
 
   @override
   Widget build(BuildContext context) {
@@ -135,15 +170,15 @@ class CallsPage extends StatelessWidget {
                     Tab(
                       text: 'UI Buttons',
                     ),
-                    Tab(
-                      text: 'Tips',
-                    ),
-                    /*
+                    //Tab(
+                    //  text: 'Settings',
+                    //),
+
                   Tab(
-                    text: 'Outgoing',
+                    text: 'Tips',
                   ),
 
-                   */
+
                   ],
                 ),
               ),
@@ -173,8 +208,9 @@ class CallsPage extends StatelessWidget {
         body: TabBarView(
           children: [
             UIPage(),
+
             TipsPage(),
-            //OutgoingPage(),
+
 
           ],
         ),
@@ -222,13 +258,118 @@ class _IncomingPageState extends State<IncomingPage>
   bool get wantKeepAlive => true;
 }
 
-class OutgoingPage extends StatefulWidget {
+class SettingsPage extends StatefulWidget {
+  late WithTabBarState parent;
+  late _SettingsPageState child;
+
+  SettingsPage({required this.parent});
+
+  /*
   @override
-  _OutgoingPageState createState() => _OutgoingPageState();
+  _SettingsPageState createState() => _SettingsPageState();
+
+   */
+  @override
+  _SettingsPageState createState() {
+    child = _SettingsPageState(parent: parent);
+
+    return child;
+  }
 }
 
-class _OutgoingPageState extends State<OutgoingPage>
-    with AutomaticKeepAliveClientMixin<OutgoingPage> {
+class _SettingsPageState extends State<SettingsPage> {
+  late WithTabBarState parent;
+
+  List _languages =
+  ["English", "Spanish", "Indonesian", "Filipino",
+    "Russian", "Vietnamese", "French", "Portuguese"];
+    //"Turkish", "Italian", "Greek"];
+
+  late List<DropdownMenuItem<String>> _dropDownMenuItems;
+  String _currentLanguage = "English";
+
+  _SettingsPageState({required this.parent});
+
+  @override
+  void initState() {
+    _dropDownMenuItems = getDropDownMenuItems();
+    //_currentCity = _dropDownMenuItems[0].value;
+    super.initState();
+  }
+
+  List<DropdownMenuItem<String>> getDropDownMenuItems() {
+    List<DropdownMenuItem<String>> items = []; //List();
+    for (String city in _languages) {
+      items.add(new DropdownMenuItem(
+          value: city,
+          child: new Text(city,
+            style: TextStyle(color: Colors.blue,
+              fontSize: 20,),)
+      ));
+    }
+    return items;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int idx = parent.getLanguageIndex();
+
+    if (idx >= 0 && idx < _languages.length) {
+      _currentLanguage = _languages[idx];
+    }
+
+    return new Container(
+      color: Color(int.parse("#cbccfe".substring(1, 7), radix: 16) + 0xFF000000),
+      child: new Center(
+          child: new Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              new Text("Please choose display language: ",
+                style: TextStyle(color: Colors.black,
+                  fontSize: 20,),),
+              new Container(
+                padding: new EdgeInsets.all(16.0),
+              ),
+              new DropdownButton(
+                value: _currentLanguage,
+                items: _dropDownMenuItems,
+                dropdownColor: Color(int.parse("#1b415f".substring(1, 7), radix: 16) + 0xFF000000),
+                onChanged: changedDropDownItem,
+              )
+            ],
+          )
+      ),
+    );
+  }
+
+  void changedDropDownItem(String? selectedLanguage) {
+    setState(() {
+      _currentLanguage = selectedLanguage as String;
+    });
+
+    int index = 0;
+
+    for (int i = 0; i < _languages.length; i++) {
+      if (_currentLanguage == _languages[i]){
+        index = i;
+        break;
+      }
+    }
+
+    parent.setLanguageIndex(index);
+  }
+
+}
+
+/*
+class SettingsPage extends StatefulWidget {
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage>
+    with AutomaticKeepAliveClientMixin<SettingsPage> {
   final items = List<String>.generate(10000, (i) => "Call $i");
 
   @override
@@ -252,13 +393,80 @@ class _OutgoingPageState extends State<OutgoingPage>
   bool get wantKeepAlive => true;
 }
 
-class MissedPage extends StatelessWidget {
+
+class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Icon(Icons.call_missed_outgoing, size: 350);
   }
 }
+*/
 
+/*
+class SettingsWidget extends StatefulWidget {
+  SettingsWidget({Key key}) : super(key: key);
+
+  @override
+  _SettingsWidgetState createState() => new _SettingsWidgetState();
+}
+
+class _SettingsWidgetState extends State<SettingsWidget> {
+
+  List _cities =
+  ["Cluj-Napoca", "Bucuresti", "Timisoara", "Brasov", "Constanta"];
+
+  List<DropdownMenuItem<String>> _dropDownMenuItems;
+  String _currentCity;
+
+  @override
+  void initState() {
+    _dropDownMenuItems = getDropDownMenuItems();
+    _currentCity = _dropDownMenuItems[0].value;
+    super.initState();
+  }
+
+  List<DropdownMenuItem<String>> getDropDownMenuItems() {
+    List<DropdownMenuItem<String>> items = new List();
+    for (String city in _cities) {
+      items.add(new DropdownMenuItem(
+          value: city,
+          child: new Text(city)
+      ));
+    }
+    return items;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Container(
+      color: Colors.white,
+      child: new Center(
+          child: new Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              new Text("Please choose your city: "),
+              new Container(
+                padding: new EdgeInsets.all(16.0),
+              ),
+              new DropdownButton(
+                value: _currentCity,
+                items: _dropDownMenuItems,
+                onChanged: changedDropDownItem,
+              )
+            ],
+          )
+      ),
+    );
+  }
+
+  void changedDropDownItem(String selectedCity) {
+    setState(() {
+      _currentCity = selectedCity;
+    });
+  }
+
+ */
 
 class UIPage extends StatelessWidget {
   double buttonWidthA = 137.0;

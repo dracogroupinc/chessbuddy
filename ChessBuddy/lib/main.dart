@@ -1,9 +1,33 @@
+
 import 'package:flutter/material.dart';
 //import 'package:stockfish/stockfish.dart';
 import 'chesstabbar.dart';
 
+/*
+import 'dart:async';
+import 'dart:convert';
+import 'package:background_fetch/background_fetch.dart';
+
+void backgroundFetchHeadlessTask(HeadlessTask task) async {
+  var taskId = task.taskId;
+  var timeout = task.timeout;
+  if (timeout) {
+    print("[BackgroundFetch] Headless task timed-out: $taskId");
+    BackgroundFetch.finish(taskId);
+    return;
+  }
+
+  print("[BackgroundFetch] Headless event received: $taskId");
+
+  BackgroundFetch.finish(taskId);
+}
+
+ */
+
 void main() {
   runApp(MyApp());
+
+  //BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
 }
 
 class MyApp extends StatefulWidget {

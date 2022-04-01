@@ -17,20 +17,42 @@ class PlayStockfish extends StatefulWidget {
   late WithTabBarState parent;
 
   late _PlayStockfishState child;
+  bool childIsNull = true;
 
   PlayStockfish({required this.parent});
 
   void disposeStockfish() {
-    child.disposeStockfish();
+    if (!childIsNull){
+      child.disposeStockfish();
+    }
+
   }
 
+  void setLanguageIndex(int index) {
+    if (!childIsNull){
+      child.setLanguageIndex(index);
+    }
+    /*
+    try {
+      child.setLanguageIndex(index);
+    } catch (error) {
+    }
+*/
+  }
+
+
   void setThinkingTimeIndex(int index) {
-    child.setThinkingTimeIndex(index);
+    if (!childIsNull){
+      child.setThinkingTimeIndex(index);
+    }
+
   }
 
   @override
   _PlayStockfishState createState() {
     child = _PlayStockfishState(parent: parent);
+
+    childIsNull = false;
 
     return child;
   }
@@ -38,6 +60,7 @@ class PlayStockfish extends StatefulWidget {
 
 class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingObserver{
   late WithTabBarState parent;
+  int languageIndex = 0;
 
   var _androidAppRetain = MethodChannel("android_app_retain");
 
@@ -108,6 +131,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   List<String> columnNames = ["a","b","c","d","e","f","g","h"];
   List<String> rowNames = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
+  /*
   List<String> stockfishCommands = ['go movetime 1000',
                                     'go movetime 2000',
                                     'go movetime 3000',
@@ -121,8 +145,35 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
                              'Stockfish Thinking Time: 4 Seconds',
                              'Stockfish Thinking Time: 5 Seconds',
                              'Stockfish Thinking Time: 6 Seconds'];
-  int stockfishThinkingTimeIndex = 0;
-  String stringButtAITime = 'Stockfish Thinking Time: 1 Second';
+  */
+  List<String> stockfishCommands = [
+    'go movetime 2000',
+    'go movetime 3000',
+    'go movetime 5000',];
+  List<String> stockfishThinkingTimeStrings =
+  [
+    'Stockfish Thinking Time: 2 Seconds',
+    'Stockfish Thinking Time: 3 Seconds',
+    'Stockfish Thinking Time: 5 Seconds',
+    ];
+  int stockfishThinkingTimeIndex = 1;
+  String stringButtAITime = 'Stockfish Thinking Time: 3 Seconds';
+
+  //int languageIndex = 0;
+  int numLanguages = 8;
+  var ThinkingTimeStringsML = List.generate(8, (i) => List.filled(3, "", growable: false), growable: true);
+
+  List<String> newGameStringsML = List.filled(8, '');
+  String stringNewGame = 'New Game';
+
+  List<String> rotateBoardStringsML = List.filled(8, '');
+  String stringRotateBoard = 'Rotate Board';
+
+  List<String> showHintStringsML = List.filled(8, '');
+  String stringShowHint = 'Show Hint';
+
+  List<String> moveBackStringsML = List.filled(8, '');
+  String stringMoveBack = 'Step Back';
 
   List<String> movesList = List.filled(300, '');
   int numMoves = 0;
@@ -158,15 +209,19 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   double IndicatorXHuman = 0;
   double IndicatorXStockfish = 0;
 
-  List<String> whitePlayerNames = ["White: Human","White: Stockfish 14.1"];
-  List<String> blackPlayerNames = ["Black: Human","Black: Stockfish 14.1"];
+  List<String> whitePlayerNames = ["White: Me","White: Stockfish 14.1"];
+  List<String> blackPlayerNames = ["Black: Me","Black: Stockfish 14.1"];
   String topPlayerName = 'Black: Stockfish 14.1';
-  String bottomPlayerName = 'White: Human';
+  String bottomPlayerName = 'White: Me';
 
-  List<String> whitePlayerIDs = ["White: Human","White: Stockfish"];
-  List<String> blackPlayerIDs = ["Black: Human","Black: Stockfish"];
-  String stringPlayerWhiteID = 'White: Human';
+  List<String> whitePlayerIDs = ["White: Me","White: Stockfish"];
+  List<String> blackPlayerIDs = ["Black: Me","Black: Stockfish"];
+  String stringPlayerWhiteID = 'White: Me';
   String stringPlayerBlackID = 'Black: Stockfish';
+
+  List<String> whiteStringsML = List.filled(8, '');
+  List<String> blackStringsML = List.filled(8, '');
+  List<String> humanStringsML = List.filled(8, '');
 
   Color WhiteIDColor = Colors.white;
   Color BlackIDColor = Colors.white;
@@ -177,10 +232,6 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   Color TopPlayerColor = Colors.white;
   Color BottomPlayerColor = Colors.white;
 
-  String stringRotateBoard = 'Rotate Board';
-  String stringShowHint = 'Show Hint';
-  String stringMoveBack = 'Step Back';
-  String stringNewGame = 'New Game';
 
   bool bRedrawArrow = false;
   double arrowX1 = 10;
@@ -359,11 +410,53 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     }
   }
 
+
+  void setLanguageIndex(int index) {
+    if (languageIndex != index){
+      languageIndex = index;
+
+      updateDisplayLabels();
+    }
+
+
+    //languageIndex = index;
+    //updateDisplayLabels();
+  }
+
+  void updateDisplayLabels() {
+    setState(() {
+      stringButtAITime = ThinkingTimeStringsML[languageIndex][stockfishThinkingTimeIndex];
+      stringNewGame = newGameStringsML[languageIndex];
+      stringRotateBoard = rotateBoardStringsML[languageIndex];
+      stringShowHint = showHintStringsML[languageIndex];
+      stringMoveBack = moveBackStringsML[languageIndex];
+
+    });
+
+    whitePlayerNames[0] = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 14.1';
+
+    blackPlayerNames[0] = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 14.1';
+
+    UpdatePlayerWhiteID();
+    UpdatePlayerBlackID();
+
+    //redisplayNames();
+  }
+
   void setThinkingTimeIndex(int index) {
     stockfishThinkingTimeIndex = index;
 
     setState(() {
-      stringButtAITime = stockfishThinkingTimeStrings[stockfishThinkingTimeIndex];
+      stringButtAITime = ThinkingTimeStringsML[languageIndex][stockfishThinkingTimeIndex];
+      stringNewGame = newGameStringsML[languageIndex];
+      stringRotateBoard = rotateBoardStringsML[languageIndex];
+      stringShowHint = showHintStringsML[languageIndex];
+      stringMoveBack = moveBackStringsML[languageIndex];
+
+      //UpdatePlayerWhiteID();
+      //UpdatePlayerBlackID();
     });
   }
 
@@ -589,7 +682,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   }
 
   void stockfishThinkingTimeClick(){
-    if (stockfishThinkingTimeIndex == 4){
+    if (stockfishThinkingTimeIndex == 2){
       stockfishThinkingTimeIndex = 0;
     }
     else{
@@ -597,7 +690,14 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     }
 
     setState(() {
-      stringButtAITime = stockfishThinkingTimeStrings[stockfishThinkingTimeIndex];
+      stringButtAITime = ThinkingTimeStringsML[languageIndex][stockfishThinkingTimeIndex];
+      stringNewGame = newGameStringsML[languageIndex];
+      stringRotateBoard = rotateBoardStringsML[languageIndex];
+      stringShowHint = showHintStringsML[languageIndex];
+      stringMoveBack = moveBackStringsML[languageIndex];
+
+      //UpdatePlayerWhiteID();
+      //UpdatePlayerBlackID();
     });
 
     parent.setThinkingTimeIndex(stockfishThinkingTimeIndex);
@@ -671,7 +771,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   void UpdatePlayerWhiteID(){
     if (bWhitePlayerIsHuman){
       setState(() {
-        stringPlayerWhiteID = whitePlayerIDs[0];
+        stringPlayerWhiteID = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
 
         WhiteIDColor = HumanColor;
 
@@ -688,7 +788,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     }
     else{
       setState(() {
-        stringPlayerWhiteID = whitePlayerIDs[1];
+        stringPlayerWhiteID = whiteStringsML[languageIndex] + ': Stockfish';
         WhiteIDColor = StockfishColor;
 
         if (bWhiteOnBottom){
@@ -727,7 +827,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   void UpdatePlayerBlackID(){
     if (bBlackPlayerIsHuman){
       setState(() {
-        stringPlayerBlackID = blackPlayerIDs[0];
+        stringPlayerBlackID = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
         BlackIDColor = HumanColor;
 
         if (bWhiteOnBottom){
@@ -743,7 +843,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     }
     else{
       setState(() {
-        stringPlayerBlackID = blackPlayerIDs[1];
+        stringPlayerBlackID = blackStringsML[languageIndex] + ': Stockfish';
         BlackIDColor = StockfishColor;
 
         if (bWhiteOnBottom){
@@ -5816,9 +5916,22 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
 
      */
 
+    stringButtAITime = ThinkingTimeStringsML[languageIndex][stockfishThinkingTimeIndex];
+    stringNewGame = newGameStringsML[languageIndex];
+    stringRotateBoard = rotateBoardStringsML[languageIndex];
+    stringShowHint = showHintStringsML[languageIndex];
+    stringMoveBack = moveBackStringsML[languageIndex];
 
-    //stockfishThinkingTimeIndex = parent.getThinkingTimeIndex();//thinkingtimeindex;
-    stringButtAITime = stockfishThinkingTimeStrings[stockfishThinkingTimeIndex];
+    whitePlayerNames[0] = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 14.1';
+
+    blackPlayerNames[0] = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 14.1';
+
+    UpdatePlayerWhiteID();
+    UpdatePlayerBlackID();
+
+    //redisplayNames();
 
     /*
     try {
@@ -5844,17 +5957,17 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
 	
     IndicatorYTop = 5;
     IndicatorYBottom = 9.0*squareWH - 5;
-    IndicatorXHuman = 130;
-    IndicatorXStockfish = 185;
+    IndicatorXHuman = 140;
+    IndicatorXStockfish = 210; //185;
 
-    buttonWidthA = 137.0;
+    buttonWidthA = 140.0;
     buttonHeightA = 34.0;
-    buttonWidthB = 173.0;
+    buttonWidthB = 195.0;
     buttonHeightB = 34.0;
     buttonWidthC = 310.0;
     buttonHeightC = 34.0;
 
-    double buttonGapW = 20;
+    double buttonGapW = 8; //20
     double buttonGapH = 12;
 
     buttonGapH = (screenHeight - 10.0*squareWH - 4.0*buttonHeightA - 70.0)/5.0;
@@ -7241,42 +7354,48 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   }
 
   onWillPop(context) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: const Text('Exit the App?'),
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                SimpleDialogOption(
-                  onPressed: () {
+    int idx = parent.getSelectedIndex();
+    if (idx != 0)
+    {
+      parent.setFirstTab();
+    }
+    else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text('Exit the App?'),
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                      newGameClick();
+                      _androidAppRetain.invokeMethod("sendToBackground");
 
-                    Navigator.of(context).pop(false);
-                    newGameClick();
-                    _androidAppRetain.invokeMethod("sendToBackground");
-
-                    //stockfish.dispose();
-                    //StockfishExit();
-                  },
-                  child: const Text('Yes',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                      //stockfish.dispose();
+                      //StockfishExit();
+                    },
+                    child: const Text('Yes',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-                SimpleDialogOption(
-                  onPressed: () {
-                    //Navigator.pop(context, false);
-                    Navigator.of(context).pop(false);
-                  },
-                  child: const Text('Cancel'),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
+                  SimpleDialogOption(
+                    onPressed: () {
+                      //Navigator.pop(context, false);
+                      Navigator.of(context).pop(false);
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     return false;
   }
@@ -7285,6 +7404,168 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   Widget build(BuildContext context) {
     //screenWidth = MediaQuery.of(context).size.width;
     //screenHeight = MediaQuery.of(context).size.height;
+    languageIndex = parent.getLanguageIndex();
+
+    ThinkingTimeStringsML[0][0] = 'Stockfish Thinking Time: 2 Seconds';
+    ThinkingTimeStringsML[0][1] = 'Stockfish Thinking Time: 3 Seconds';
+    ThinkingTimeStringsML[0][2] = 'Stockfish Thinking Time: 5 Seconds';
+
+    ThinkingTimeStringsML[1][0] = 'Stockfish Tiempo: 2 Sobras';
+    ThinkingTimeStringsML[1][1] = 'Stockfish Tiempo: 3 Sobras';
+    ThinkingTimeStringsML[1][2] = 'Stockfish Tiempo: 5 Sobras';
+
+    ThinkingTimeStringsML[2][0] = 'Stockfish Waktu: 2 Detik';
+    ThinkingTimeStringsML[2][1] = 'Stockfish Waktu: 3 Detik';
+    ThinkingTimeStringsML[2][2] = 'Stockfish Waktu: 5 Detik';
+
+    ThinkingTimeStringsML[3][0] = 'Stockfish Oras: 2 Segundo';
+    ThinkingTimeStringsML[3][1] = 'Stockfish Oras: 3 Segundo';
+    ThinkingTimeStringsML[3][2] = 'Stockfish Oras: 5 Segundo';
+
+    ThinkingTimeStringsML[4][0] = 'Stockfish Время: 2 Cекунды';
+    ThinkingTimeStringsML[4][1] = 'Stockfish Время: 3 Cекунды';
+    ThinkingTimeStringsML[4][2] = 'Stockfish Время: 5 Cекунды';
+
+    ThinkingTimeStringsML[5][0] = 'Stockfish Thời Gian: 2 Giây';
+    ThinkingTimeStringsML[5][1] = 'Stockfish Thời Gian: 3 Giây';
+    ThinkingTimeStringsML[5][2] = 'Stockfish Thời Gian: 5 Giây';
+
+    ThinkingTimeStringsML[6][0] = 'Stockfish Heure: 2 Secondes';
+    ThinkingTimeStringsML[6][1] = 'Stockfish Heure: 3 Secondes';
+    ThinkingTimeStringsML[6][2] = 'Stockfish Heure: 5 Secondes';
+
+    ThinkingTimeStringsML[7][0] = 'Stockfish Tempo: 2 Segundos';
+    ThinkingTimeStringsML[7][1] = 'Stockfish Tempo: 3 Segundos';
+    ThinkingTimeStringsML[7][2] = 'Stockfish Tempo: 5 Segundos';
+
+    stringButtAITime = ThinkingTimeStringsML[languageIndex][stockfishThinkingTimeIndex];
+
+    newGameStringsML[0] = 'New Game';
+    newGameStringsML[1] = 'Nuevo';
+    newGameStringsML[2] = 'Baru';
+    newGameStringsML[3] = 'Bago';
+    newGameStringsML[4] = 'Новая';
+    newGameStringsML[5] = 'Mới';
+    newGameStringsML[6] = 'Nouveau';
+    newGameStringsML[7] = 'Novo ';
+    stringNewGame = newGameStringsML[languageIndex];
+
+    rotateBoardStringsML[0] = 'Rotate Board';
+    rotateBoardStringsML[1] = 'Rotar Tablero';
+    rotateBoardStringsML[2] = 'Putar Papan';
+    rotateBoardStringsML[3] = 'Paikutin';
+    rotateBoardStringsML[4] = 'Вращать';
+    rotateBoardStringsML[5] = 'Xoay Bảng';
+    rotateBoardStringsML[6] = 'Tourner';
+    rotateBoardStringsML[7] = 'Rodar';
+    stringRotateBoard = rotateBoardStringsML[languageIndex];
+
+    showHintStringsML[0] = 'Show Hint';
+    showHintStringsML[1] = 'Indirecta';
+    showHintStringsML[2] = 'Petunjuk';
+    showHintStringsML[3] = 'Hint';
+    showHintStringsML[4] = 'Подсказка';
+    showHintStringsML[5] = 'Kháy';
+    showHintStringsML[6] = 'Indice';
+    showHintStringsML[7] = 'Dica';
+    stringShowHint = showHintStringsML[languageIndex];
+
+    moveBackStringsML[0] = 'Step Back';
+    moveBackStringsML[1] = 'Atrás';
+    moveBackStringsML[2] = 'Mundur';
+    moveBackStringsML[3] = 'Pabalik';
+    moveBackStringsML[4] = 'Назад';
+    moveBackStringsML[5] = 'Lạc Hậu';
+    moveBackStringsML[6] = 'Reculez';
+    moveBackStringsML[7] = 'Recuar';
+    stringMoveBack = moveBackStringsML[languageIndex];
+
+    whiteStringsML[0] = 'White';
+    whiteStringsML[1] = 'Blanco';
+    whiteStringsML[2] = 'Putih';
+    whiteStringsML[3] = 'Puti';
+    whiteStringsML[4] = 'Белый';
+    whiteStringsML[5] = 'Trắng';
+    whiteStringsML[6] = 'Blanc';
+    whiteStringsML[7] = 'Branco';
+
+    blackStringsML[0] = 'Black';
+    blackStringsML[1] = 'Negro';
+    blackStringsML[2] = 'Hitam';
+    blackStringsML[3] = 'Itim';
+    blackStringsML[4] = 'Чёрный';
+    blackStringsML[5] = 'Đen';
+    blackStringsML[6] = 'Noir';
+    blackStringsML[7] = 'Preto';
+
+    humanStringsML[0] = 'Me';
+    humanStringsML[1] = 'Me';
+    humanStringsML[2] = 'Saya';
+    humanStringsML[3] = 'Ako';
+    humanStringsML[4] = 'Меня';
+    humanStringsML[5] = 'Tôi';
+    humanStringsML[6] = 'Me';
+    humanStringsML[7] = 'Me';
+
+    whitePlayerNames[0] = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 14.1';
+
+    blackPlayerNames[0] = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 14.1';
+
+    if (bWhitePlayerIsHuman){
+      stringPlayerWhiteID = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+      WhiteIDColor = HumanColor;
+
+      if (bWhiteOnBottom){
+        bottomPlayerName  = whitePlayerNames[0];
+        BottomPlayerColor = HumanColor;
+      }
+      else{
+        topPlayerName  = whitePlayerNames[0];
+        TopPlayerColor = HumanColor;
+      }
+    }
+    else{
+      stringPlayerWhiteID = whiteStringsML[languageIndex] + ': Stockfish';
+      WhiteIDColor = StockfishColor;
+
+      if (bWhiteOnBottom){
+        bottomPlayerName  = whitePlayerNames[1];
+        BottomPlayerColor = StockfishColor;
+      }
+      else{
+        topPlayerName  = whitePlayerNames[1];
+        TopPlayerColor = StockfishColor;
+      }
+    }
+
+    if (bBlackPlayerIsHuman){
+      stringPlayerBlackID = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
+      BlackIDColor = HumanColor;
+
+      if (bWhiteOnBottom){
+        topPlayerName  = blackPlayerNames[0];
+        TopPlayerColor = HumanColor;
+      }
+      else{
+        bottomPlayerName  = blackPlayerNames[0];
+        BottomPlayerColor = HumanColor;
+      }
+    }
+    else{
+      stringPlayerBlackID = blackStringsML[languageIndex] + ': Stockfish';
+      BlackIDColor = StockfishColor;
+
+      if (bWhiteOnBottom){
+        topPlayerName  = blackPlayerNames[1];
+        TopPlayerColor = StockfishColor;
+      }
+      else{
+        bottomPlayerName  = blackPlayerNames[1];
+        BottomPlayerColor = StockfishColor;
+      }
+    }
 
     piecePos1 = new Positioned(
       top: piecePositioneTop1,
@@ -8718,9 +8999,9 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
                 top: 0,
                 left: 10,
                 height:30,
-                width: 170,
+                width: 190,
                 child: Container(
-                  width: 170,
+                  width: 190,
                   height: 30,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -8740,10 +9021,10 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
                 top: 9.0*squareWH - 10.0,
                 left: 10,
                 height:30,
-                width: 170,
+                width: 190,
                 child: Container(
 
-                  width: 170,
+                  width: 190,
                   height: 30,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
