@@ -1,7 +1,10 @@
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 //import 'package:stockfish/stockfish.dart';
 import 'chesstabbar.dart';
+
+//import 'package:provider/provider.dart';
+import 'ffibridge.dart';
 
 /*
 import 'dart:async';
@@ -25,6 +28,7 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
  */
 
 void main() {
+
   runApp(MyApp());
 
   //BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
@@ -40,7 +44,18 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    //stockfish = Stockfish();
+    /*
+    try {
+      FFIBridge.initialize();
+      FFIBridge.initApp();
+    } catch (error) {
+      sleep(Duration(seconds:2));
+
+      FFIBridge.initialize();
+      FFIBridge.initApp();
+    }
+
+     */
 
     return new MaterialApp(
         theme: ThemeData(
@@ -82,15 +97,33 @@ class _StockfishServiceWidgetState extends State<StockfishServiceWidget>
   void initState() {
     super.initState();
     WidgetsBinding.instance?.addObserver(this);
+
+    try {
+      FFIBridge.initialize();
+      FFIBridge.initApp();
+    } catch (error) {
+      sleep(Duration(seconds:1));
+
+      try {
+        FFIBridge.initialize();
+        FFIBridge.initApp();
+      } catch (error2) {
+      }
+
+    }
+
   }
 
   @override
   void dispose() {
+    /*
     try {
-      child.disposeStockfish();
+      //child.disposeStockfish();
     } catch (error) {
 
     }
+
+     */
 
     WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
@@ -100,10 +133,13 @@ class _StockfishServiceWidgetState extends State<StockfishServiceWidget>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.inactive:
+        /*
         try {
           //child.disposeStockfish();
         } catch (error) {
         }
+
+         */
         break;
       case AppLifecycleState.resumed:
         break;

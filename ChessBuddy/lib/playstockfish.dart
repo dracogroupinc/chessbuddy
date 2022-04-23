@@ -6,12 +6,14 @@ import 'package:get/get.dart';
 
 import 'dart:math';
 
-import 'package:stockfish/stockfish.dart';
+//import 'package:stockfish/stockfish.dart';
 import 'dart:async';
 
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+//import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'chesstabbar.dart';
+
+import 'ffibridge.dart';
 
 class PlayStockfish extends StatefulWidget {
   late WithTabBarState parent;
@@ -22,9 +24,12 @@ class PlayStockfish extends StatefulWidget {
   PlayStockfish({required this.parent});
 
   void disposeStockfish() {
+    /*
     if (!childIsNull){
       child.disposeStockfish();
     }
+
+     */
 
   }
 
@@ -62,9 +67,11 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   late WithTabBarState parent;
   int languageIndex = 0;
 
+  int bestMoveWaitTimes = 0;
+
   var _androidAppRetain = MethodChannel("android_app_retain");
 
-  late Stockfish stockfish;
+  //late Stockfish stockfish;
   late StreamSubscription<String> streamSubscription;
 
   bool bIsFirstLoad = true;
@@ -150,6 +157,12 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     'go movetime 2000',
     'go movetime 3000',
     'go movetime 5000',];
+
+  List<String> stockfishCommands2 = [
+    'movetime 2000',
+    'movetime 3000',
+    'movetime 5000',];
+
   List<String> stockfishThinkingTimeStrings =
   [
     'Stockfish Thinking Time: 2 Seconds',
@@ -159,20 +172,19 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   int stockfishThinkingTimeIndex = 1;
   String stringButtAITime = 'Stockfish Thinking Time: 3 Seconds';
 
-  //int languageIndex = 0;
-  int numLanguages = 8;
-  var ThinkingTimeStringsML = List.generate(8, (i) => List.filled(3, "", growable: false), growable: true);
+  static int numLanguages = 16;
+  var ThinkingTimeStringsML = List.generate(numLanguages, (i) => List.filled(3, "", growable: false), growable: true);
 
-  List<String> newGameStringsML = List.filled(8, '');
+  List<String> newGameStringsML = List.filled(numLanguages, '');
   String stringNewGame = 'New Game';
 
-  List<String> rotateBoardStringsML = List.filled(8, '');
+  List<String> rotateBoardStringsML = List.filled(numLanguages, '');
   String stringRotateBoard = 'Rotate Board';
 
-  List<String> showHintStringsML = List.filled(8, '');
+  List<String> showHintStringsML = List.filled(numLanguages, '');
   String stringShowHint = 'Show Hint';
 
-  List<String> moveBackStringsML = List.filled(8, '');
+  List<String> moveBackStringsML = List.filled(numLanguages, '');
   String stringMoveBack = 'Step Back';
 
   List<String> movesList = List.filled(300, '');
@@ -209,9 +221,9 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   double IndicatorXHuman = 0;
   double IndicatorXStockfish = 0;
 
-  List<String> whitePlayerNames = ["White: Me","White: Stockfish 14.1"];
-  List<String> blackPlayerNames = ["Black: Me","Black: Stockfish 14.1"];
-  String topPlayerName = 'Black: Stockfish 14.1';
+  List<String> whitePlayerNames = ["White: Me","White: Stockfish 15"];
+  List<String> blackPlayerNames = ["Black: Me","Black: Stockfish 15"];
+  String topPlayerName = 'Black: Stockfish 15';
   String bottomPlayerName = 'White: Me';
 
   List<String> whitePlayerIDs = ["White: Me","White: Stockfish"];
@@ -219,9 +231,9 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   String stringPlayerWhiteID = 'White: Me';
   String stringPlayerBlackID = 'Black: Stockfish';
 
-  List<String> whiteStringsML = List.filled(8, '');
-  List<String> blackStringsML = List.filled(8, '');
-  List<String> humanStringsML = List.filled(8, '');
+  List<String> whiteStringsML = List.filled(numLanguages, '');
+  List<String> blackStringsML = List.filled(numLanguages, '');
+  List<String> humanStringsML = List.filled(numLanguages, '');
 
   Color WhiteIDColor = Colors.white;
   Color BlackIDColor = Colors.white;
@@ -403,11 +415,14 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   _PlayStockfishState({required this.parent});
 
   void disposeStockfish() {
+    /*
     try {
-      stockfish.dispose();
+      //stockfish.dispose();
     } catch (error) {
 
     }
+
+     */
   }
 
 
@@ -434,10 +449,10 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     });
 
     whitePlayerNames[0] = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
-    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 14.1';
+    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 15';
 
     blackPlayerNames[0] = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
-    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 14.1';
+    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 15';
 
     UpdatePlayerWhiteID();
     UpdatePlayerBlackID();
@@ -464,11 +479,14 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     int numSeconds = 3;
 
     try {
+      /*
       while (numSeconds > 0 && stockfish.state.value != StockfishState.ready) {
         await Future.delayed(Duration(seconds: 1));
 
         numSeconds--;
       }
+
+       */
     } catch (error) {
 
     }
@@ -481,6 +499,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
   }
 
   Future<void> LoadStockfish() async {
+    /*
     stockfish = Stockfish();
 
     await waitUntilReady();
@@ -498,6 +517,8 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
         }
       }
     });
+
+ */
 
   }
 
@@ -539,16 +560,8 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
 
      */
 
+    /*
     if (stockfish.state.value == StockfishState.disposed){
-      /*
-      final stockfishNew = Stockfish();
-
-      setState(() {
-        stockfish = stockfishNew;
-
-      });
-      *
-       */
       stockfish = Stockfish();
 
       await waitUntilReady();
@@ -566,28 +579,10 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
           }
         }
       });
-/*
-      setState(() {
-        streamSubscription = stockfish.stdout.listen((value) {
-          if (value.startsWith('bestmove')) {
-            final split = value.split(' ');
-            //final Map<int, String> values = {
-            //  for (int i = 0; i < split.length; i++)
-            //    i: split[i]
-            //};
-            if (split.length >= 2) {
-              //textfielsController.text = split[1];
-              AINextMove(split[1]);
-            }
-          }
-        });
-
-
-      });
-
- */
 
     }
+
+     */
 
   }
 
@@ -5791,10 +5786,9 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
       return;
     }
 
-    //await ReloadStockfish();
-
     bStockfishBusy = true;
 
+    /*
     String command = "position startpos";
 
     if (numMoves == 0){
@@ -5810,6 +5804,49 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
 
       stockfish.stdin = command;
       stockfish.stdin = stockfishCommands[stockfishThinkingTimeIndex];
+    }
+    */
+
+    String command = "startpos";
+
+    if (numMoves > 0){
+      command = "startpos moves";
+
+      for (int i=0; i<numMoves; i++){
+        command += ' ' + movesList[i];
+      }
+    }
+
+    FFIBridge.oneUCICommand(command, stockfishCommands2[stockfishThinkingTimeIndex]);
+
+    bestMoveWaitTimes = 0;
+
+    int ss = 2;
+    if (stockfishThinkingTimeIndex == 1){
+      ss = 3;
+    }
+    if (stockfishThinkingTimeIndex == 2){
+      ss = 5;
+    }
+
+    Timer(Duration(milliseconds: ss*1000 + 200), () {
+      processBestMove();
+    });
+  }
+
+  void processBestMove() {
+    String bm = FFIBridge.getStockfishBestMove();
+    if (bm.length >= 4){
+      AINextMove(bm);
+    }
+    else{
+      bestMoveWaitTimes++;
+
+      if (bestMoveWaitTimes < 5){
+        Timer(Duration(milliseconds: 200), () {
+          processBestMove();
+        });
+      }
     }
   }
 
@@ -5923,10 +5960,10 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     stringMoveBack = moveBackStringsML[languageIndex];
 
     whitePlayerNames[0] = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
-    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 14.1';
+    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 15';
 
     blackPlayerNames[0] = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
-    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 14.1';
+    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 15';
 
     UpdatePlayerWhiteID();
     UpdatePlayerBlackID();
@@ -7438,6 +7475,39 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     ThinkingTimeStringsML[7][1] = 'Stockfish Tempo: 3 Segundos';
     ThinkingTimeStringsML[7][2] = 'Stockfish Tempo: 5 Segundos';
 
+
+    ThinkingTimeStringsML[8][0] = 'Stockfish Saat: 2 Saniye';
+    ThinkingTimeStringsML[8][1] = 'Stockfish Saat: 3 Saniye';
+    ThinkingTimeStringsML[8][2] = 'Stockfish Saat: 5 Saniye';
+
+    ThinkingTimeStringsML[9][0] = 'Stockfish Ore: 2 Secondi';
+    ThinkingTimeStringsML[9][1] = 'Stockfish Ore: 3 Secondi';
+    ThinkingTimeStringsML[9][2] = 'Stockfish Ore: 5 Secondi';
+
+    ThinkingTimeStringsML[10][0] = 'Stockfish Ώρα: 2 Δευτερόλεπτα';
+    ThinkingTimeStringsML[10][1] = 'Stockfish Ώρα: 3 Δευτερόλεπτα';
+    ThinkingTimeStringsML[10][2] = 'Stockfish Ώρα: 5 Δευτερόλεπτα';
+
+    ThinkingTimeStringsML[11][0] = 'Stockfish 시간: 2 초';
+    ThinkingTimeStringsML[11][1] = 'Stockfish 시간: 3 초';
+    ThinkingTimeStringsML[11][2] = 'Stockfish 시간: 5 초';
+
+    ThinkingTimeStringsML[12][0] = 'Stockfish 時間: 2 お代わり';
+    ThinkingTimeStringsML[12][1] = 'Stockfish 時間: 3 お代わり';
+    ThinkingTimeStringsML[12][2] = 'Stockfish 時間: 5 お代わり';
+
+    ThinkingTimeStringsML[13][0] = 'Stockfish সময়: 2 সেকেন্ড';
+    ThinkingTimeStringsML[13][1] = 'Stockfish সময়: 3 সেকেন্ড';
+    ThinkingTimeStringsML[13][2] = 'Stockfish সময়: 5 সেকেন্ড';
+
+    ThinkingTimeStringsML[14][0] = 'وقت التفكير: 2 ثانية' + ' Stockfish';
+    ThinkingTimeStringsML[14][1] = 'وقت التفكير: 3 ثانية' + ' Stockfish';
+    ThinkingTimeStringsML[14][2] = 'وقت التفكير: 5 ثانية' + ' Stockfish';
+
+    ThinkingTimeStringsML[15][0] = 'زمان تفکر: 2 ثانیه' + ' Stockfish';
+    ThinkingTimeStringsML[15][1] = 'زمان تفکر: 3 ثانیه' + ' Stockfish';
+    ThinkingTimeStringsML[15][2] = 'زمان تفکر: 5 ثانیه' + ' Stockfish';
+
     stringButtAITime = ThinkingTimeStringsML[languageIndex][stockfishThinkingTimeIndex];
 
     newGameStringsML[0] = 'New Game';
@@ -7447,7 +7517,17 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     newGameStringsML[4] = 'Новая';
     newGameStringsML[5] = 'Mới';
     newGameStringsML[6] = 'Nouveau';
-    newGameStringsML[7] = 'Novo ';
+    newGameStringsML[7] = 'Novo';
+
+    newGameStringsML[8] = 'Yeni';
+    newGameStringsML[9] = 'Nuovo';
+    newGameStringsML[10] = 'Νέος';
+    newGameStringsML[11] = '새로운';
+    newGameStringsML[12] = '新しいゲーム';
+    newGameStringsML[13] = 'নতুন খেলা';
+    newGameStringsML[14] = 'لعبة جديدة';
+    newGameStringsML[15] = 'بازی جدید';
+
     stringNewGame = newGameStringsML[languageIndex];
 
     rotateBoardStringsML[0] = 'Rotate Board';
@@ -7458,6 +7538,16 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     rotateBoardStringsML[5] = 'Xoay Bảng';
     rotateBoardStringsML[6] = 'Tourner';
     rotateBoardStringsML[7] = 'Rodar';
+
+    rotateBoardStringsML[8] = 'Döndürmek';
+    rotateBoardStringsML[9] = 'Ruotare';
+    rotateBoardStringsML[10] = 'Περιστροφή';
+    rotateBoardStringsML[11] = '돌다';
+    rotateBoardStringsML[12] = '回転';
+    rotateBoardStringsML[13] = 'পর্যাবৃত্ত';
+    rotateBoardStringsML[14] = 'دور';
+    rotateBoardStringsML[15] = 'چرخش';
+
     stringRotateBoard = rotateBoardStringsML[languageIndex];
 
     showHintStringsML[0] = 'Show Hint';
@@ -7468,6 +7558,16 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     showHintStringsML[5] = 'Kháy';
     showHintStringsML[6] = 'Indice';
     showHintStringsML[7] = 'Dica';
+
+    showHintStringsML[8] = 'İma';
+    showHintStringsML[9] = 'Alludere';
+    showHintStringsML[10] = 'Υπαινιγμός';
+    showHintStringsML[11] = '힌트';
+    showHintStringsML[12] = 'ヒント';
+    showHintStringsML[13] = 'ইঙ্গিত';
+    showHintStringsML[14] = 'تلميح';
+    showHintStringsML[15] = 'اشاره';
+
     stringShowHint = showHintStringsML[languageIndex];
 
     moveBackStringsML[0] = 'Step Back';
@@ -7478,6 +7578,16 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     moveBackStringsML[5] = 'Lạc Hậu';
     moveBackStringsML[6] = 'Reculez';
     moveBackStringsML[7] = 'Recuar';
+
+    moveBackStringsML[8] = 'Geri';
+    moveBackStringsML[9] = 'Indietro';
+    moveBackStringsML[10] = 'Πλάτη';
+    moveBackStringsML[11] = '뒤로';
+    moveBackStringsML[12] = '戻る';
+    moveBackStringsML[13] = 'ফিরে';
+    moveBackStringsML[14] = 'ظهر';
+    moveBackStringsML[15] = 'بازگشت';
+
     stringMoveBack = moveBackStringsML[languageIndex];
 
     whiteStringsML[0] = 'White';
@@ -7489,6 +7599,15 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     whiteStringsML[6] = 'Blanc';
     whiteStringsML[7] = 'Branco';
 
+    whiteStringsML[8] = 'Beyaz';
+    whiteStringsML[9] = 'Bianco';
+    whiteStringsML[10] = 'Άσπρος';
+    whiteStringsML[11] = '하얀';
+    whiteStringsML[12] = '白い';
+    whiteStringsML[13] = 'সাদা';
+    whiteStringsML[14] = 'أبيض';
+    whiteStringsML[15] = 'سفید';
+
     blackStringsML[0] = 'Black';
     blackStringsML[1] = 'Negro';
     blackStringsML[2] = 'Hitam';
@@ -7497,6 +7616,15 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     blackStringsML[5] = 'Đen';
     blackStringsML[6] = 'Noir';
     blackStringsML[7] = 'Preto';
+
+    blackStringsML[8] = 'Siyah';
+    blackStringsML[9] = 'Nero';
+    blackStringsML[10] = 'Μαύρος';
+    blackStringsML[11] = '검정';
+    blackStringsML[12] = '黒い';
+    blackStringsML[13] = 'ব্ল্যাক';
+    blackStringsML[14] = 'أسود';
+    blackStringsML[15] = 'سیاه';
 
     humanStringsML[0] = 'Me';
     humanStringsML[1] = 'Me';
@@ -7507,11 +7635,20 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
     humanStringsML[6] = 'Me';
     humanStringsML[7] = 'Me';
 
+    humanStringsML[8] = 'Beni';
+    humanStringsML[9] = 'Me';
+    humanStringsML[10] = 'Μου';
+    humanStringsML[11] = '저';
+    humanStringsML[12] = '私';
+    humanStringsML[13] = 'আমাকে';
+    humanStringsML[14] = 'أنا';
+    humanStringsML[15] = 'من';
+
     whitePlayerNames[0] = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
-    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 14.1';
+    whitePlayerNames[1] = whiteStringsML[languageIndex] + ': Stockfish 15';
 
     blackPlayerNames[0] = blackStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
-    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 14.1';
+    blackPlayerNames[1] = blackStringsML[languageIndex] + ': Stockfish 15';
 
     if (bWhitePlayerIsHuman){
       stringPlayerWhiteID = whiteStringsML[languageIndex] + ': ' + humanStringsML[languageIndex];
@@ -9041,6 +9178,7 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
                 ),
               ),
 
+              /*
               Positioned(
                 top: stockfishBusyTop,
                 left: stockfishBusyLeft,
@@ -9076,6 +9214,45 @@ class _PlayStockfishState extends State<PlayStockfish>  { //with WidgetsBindingO
                     //child: SpinKitSpinningCircle(color: Colors.white)
                 ),
               ),
+
+               */
+
+              Positioned(
+                top: stockfishBusyTop,
+                left: stockfishBusyLeft,
+                width: 22,
+                height:22,
+                child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(6))
+                    ),
+                    width: 22,
+                    height: 22,
+
+                    //child: SpinKitFadingCircle(color: Colors.white)
+                    child: new Image.asset('assets/images/arrowleft.png')
+                ),
+              ),
+
+              Positioned(
+                top: humanBusyTop,
+                left: humanBusyLeft,
+                width: 22,
+                height:22,
+                child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(6))
+                    ),
+                    width: 22,
+                    height: 22,
+
+                    child: new Image.asset('assets/images/arrowleft.png')
+                  //child: SpinKitSpinningCircle(color: Colors.white)
+                ),
+              ),
+              //new Image.asset('assets/images/targets.png')
           ],
         ),
           )

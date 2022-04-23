@@ -21,16 +21,32 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
+    externalNativeBuild {
+        cmake {
+            path "../../libs/CMakeLists.txt"
+        }
+    }
+
     compileSdkVersion 31
 
     sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
         main.java.srcDirs += 'src/main/kotlin'
     }
+
 
     defaultConfig {
         applicationId "com.dracogroupinc.chessmaze"
@@ -38,7 +54,11 @@ android {
         targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        ndk {
+            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+        }
     }
+
 
     buildTypes {
         release {

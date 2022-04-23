@@ -1,0 +1,6 @@
+LIBRARY api
+EXPORTS
+    getStockfishResult
+    initApp
+    restartApp
+    oneCommand

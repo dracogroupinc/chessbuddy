@@ -9,7 +9,7 @@ class ChessTabBar extends StatefulWidget {
   ChessTabBar({Key? key}) : super(key: key);
 
   void disposeStockfish() {
-    child.disposeStockfish();
+    //child.disposeStockfish();
   }
 
   @override
@@ -72,7 +72,7 @@ class WithTabBarState extends State<ChessTabBar> {
   }
 
   void disposeStockfish() {
-    playStockfish.disposeStockfish();
+    //playStockfish.disposeStockfish();
   }
 
   void _onItemTapped(int index) {
@@ -282,8 +282,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   List _languages =
   ["English", "Spanish", "Indonesian", "Filipino",
-    "Russian", "Vietnamese", "French", "Portuguese"];
-    //"Turkish", "Italian", "Greek"];
+    "Russian", "Vietnamese", "French", "Portuguese",
+    "Turkish", "Italian", "Greek", "Korean",
+    "Japanese", "Bangla", "Arabic", "Persian"];
+
 
   late List<DropdownMenuItem<String>> _dropDownMenuItems;
   String _currentLanguage = "English";
